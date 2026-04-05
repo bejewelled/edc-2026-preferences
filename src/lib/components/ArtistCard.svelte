@@ -90,7 +90,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    width: max-content;
+    width: 100%;
+    max-width: 270px;
     min-width: 200px;
   }
 
@@ -107,7 +108,8 @@
     font-weight: 600;
     color: #e2d9f3;
     line-height: 1.3;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
     transition: color 0.2s;
   }
 
