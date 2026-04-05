@@ -1,14 +1,16 @@
 import { MongoClient } from 'mongodb';
-import { MONGODB_URI } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 let client;
 let db;
 
 export async function getDb() {
-  if (!db) {
-    client = new MongoClient(MONGODB_URI);
-    await client.connect();
-    db = client.db('edc2026');
-  }
+  if (db) return db;
+
+  client = new MongoClient(env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000
+  });
+  await client.connect();
+  db = client.db('edc2026');
   return db;
 }
