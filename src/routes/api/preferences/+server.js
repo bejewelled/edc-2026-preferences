@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getRedis } from '$lib/redis.js';
+import { getRedis, keys } from '$lib/redis.js';
 
 // GET /api/preferences — return all preferences as { artistKey: [{ memberId, name, priority }] }
 export async function GET() {
@@ -7,14 +7,14 @@ export async function GET() {
     const redis = getRedis();
 
     const [prefsHash, memberIds] = await Promise.all([
-      redis.hgetall('preferences'),
-      redis.smembers('members')
+      redis.hgetall(keys.preferences),
+      redis.smembers(keys.members)
     ]);
 
     // Resolve all member names in one round-trip
     const memberNames = {};
     if (memberIds.length) {
-      const values = await Promise.all(memberIds.map(id => redis.get(`member:${id}`)));
+      const values = await Promise.all(memberIds.map(id => redis.get(keys.member(id))));
       memberIds.forEach((id, i) => {
         if (values[i]) memberNames[id] = JSON.parse(values[i]).name;
       });
@@ -57,7 +57,7 @@ export async function PUT({ request }) {
 
   try {
     const redis = getRedis();
-    await redis.hset('preferences', `${memberId}|${artistKey}`, priority);
+    await redis.hset(keys.preferences, `${memberId}|${artistKey}`, priority);
     return json({ ok: true });
   } catch (err) {
     console.error('Preferences PUT error:', err);
@@ -75,7 +75,7 @@ export async function DELETE({ request }) {
 
   try {
     const redis = getRedis();
-    await redis.hdel('preferences', `${memberId}|${artistKey}`);
+    await redis.hdel(keys.preferences, `${memberId}|${artistKey}`);
     return json({ ok: true });
   } catch (err) {
     console.error('Preferences DELETE error:', err);

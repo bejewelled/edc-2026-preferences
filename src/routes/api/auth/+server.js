@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getRedis } from '$lib/redis.js';
+import { getRedis, keys } from '$lib/redis.js';
 import bcrypt from 'bcryptjs';
 
 // POST /api/auth — log in with name + PIN
@@ -12,12 +12,12 @@ export async function POST({ request }) {
 
   try {
     const redis = getRedis();
-    const memberId = await redis.get(`name:${name.trim().toLowerCase()}`);
+    const memberId = await redis.get(keys.name(name.trim().toLowerCase()));
     if (!memberId) {
       return json({ error: 'No account found with that name.' }, { status: 404 });
     }
 
-    const memberJson = await redis.get(`member:${memberId}`);
+    const memberJson = await redis.get(keys.member(memberId));
     const member = JSON.parse(memberJson);
 
     const valid = await bcrypt.compare(pin, member.pinHash);

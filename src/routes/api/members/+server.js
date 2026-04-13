@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getRedis } from '$lib/redis.js';
+import { getRedis, keys } from '$lib/redis.js';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 
@@ -13,7 +13,7 @@ export async function POST({ request }) {
 
   try {
     const redis = getRedis();
-    const nameKey = `name:${name.trim().toLowerCase()}`;
+    const nameKey = keys.name(name.trim().toLowerCase());
     const existing = await redis.get(nameKey);
     if (existing) {
       return json({ error: 'That name is already taken.' }, { status: 409 });
@@ -22,9 +22,9 @@ export async function POST({ request }) {
     const id = randomUUID();
     const pinHash = await bcrypt.hash(pin, 10);
 
-    await redis.set(`member:${id}`, JSON.stringify({ name: name.trim(), pinHash }));
+    await redis.set(keys.member(id), JSON.stringify({ name: name.trim(), pinHash }));
     await redis.set(nameKey, id);
-    await redis.sadd('members', id);
+    await redis.sadd(keys.members, id);
 
     return json({ _id: id, name: name.trim() }, { status: 201 });
   } catch (err) {
